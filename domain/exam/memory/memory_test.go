@@ -213,7 +213,7 @@ func TestMemoryExam_Delete(t *testing.T) {
 					t.Fatal(err)
 				}
 				if len(result) != 1 {
-					t.Fatalf("expected at least tow exams, got %d", len(result))
+					t.Fatalf("expected at least one exam, got %d", len(result))
 				}
 			}
 		})
