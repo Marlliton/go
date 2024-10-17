@@ -45,6 +45,7 @@ func (e *Exam) GetID() string             { return e.id }
 func (e *Exam) GetTitle() string          { return e.title }
 func (e *Exam) GetDescription() string    { return e.description }
 func (e *Exam) GetQuestions() []*Question { return e.questions }
+func (e *Exam) GetTotalQuestions() int    { return len(e.questions) }
 
 func (e *Exam) SetTitle(t string)          { e.title = t }
 func (e *Exam) SetDescription(d string)    { e.description = d }
