@@ -1,14 +1,13 @@
-package memory_test
+package memoryrepo
 
 import (
 	"testing"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
-	"github.com/Marlliton/go-quizzer/domain/exam/memory"
 )
 
 func TestMemoryExam_Save(t *testing.T) {
-	repo := memory.New()
+	repo := New()
 	toSaveExam, err := exam.New("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -46,7 +45,7 @@ func TestMemoryExam_Save(t *testing.T) {
 }
 
 func TestMemoryExam_Get(t *testing.T) {
-	repo := memory.New()
+	repo := New()
 	existingExam, err := exam.New("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +103,7 @@ func TestMemoryExam_Get(t *testing.T) {
 }
 
 func TestMemoryExam_Update(t *testing.T) {
-	repo := memory.New()
+	repo := New()
 	existingExam, err := exam.New("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -161,7 +160,7 @@ func TestMemoryExam_Update(t *testing.T) {
 }
 
 func TestMemoryExam_Delete(t *testing.T) {
-	repo := memory.New()
+	repo := New()
 	exam1, err := exam.New("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
