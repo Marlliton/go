@@ -8,7 +8,7 @@ import (
 
 func TestMemoryExam_Save(t *testing.T) {
 	repo := New()
-	toSaveExam, err := exam.New("", "Existing Exam", "Just testing", nil)
+	toSaveExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,11 +46,11 @@ func TestMemoryExam_Save(t *testing.T) {
 
 func TestMemoryExam_Get(t *testing.T) {
 	repo := New()
-	existingExam, err := exam.New("", "Existing Exam", "Just testing", nil)
+	existingExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	secondExam, err := exam.New("", "Second Exam", "Just testing", nil)
+	secondExam, err := exam.NewExam("", "Second Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,11 +104,11 @@ func TestMemoryExam_Get(t *testing.T) {
 
 func TestMemoryExam_Update(t *testing.T) {
 	repo := New()
-	existingExam, err := exam.New("", "Existing Exam", "Just testing", nil)
+	existingExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	nonExistingExam, err := exam.New("", "Non-Existing Exam", "Just testing", nil)
+	nonExistingExam, err := exam.NewExam("", "Non-Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,11 +161,11 @@ func TestMemoryExam_Update(t *testing.T) {
 
 func TestMemoryExam_Delete(t *testing.T) {
 	repo := New()
-	exam1, err := exam.New("", "Existing Exam", "Just testing", nil)
+	exam1, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	exam2, err := exam.New("", "Non-Existing Exam", "Just testing", nil)
+	exam2, err := exam.NewExam("", "Non-Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

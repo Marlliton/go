@@ -17,7 +17,7 @@ type ExamService struct {
 	repo exam.Repository
 }
 
-func New(cfgs ...ExamServiceConfig) (*ExamService, error) {
+func NewExamsvc(cfgs ...ExamServiceConfig) (*ExamService, error) {
 	es := &ExamService{}
 
 	for _, cfg := range cfgs {

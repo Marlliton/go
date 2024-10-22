@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: Padronizar todos os erros da aplicação
 var (
 	ErrInvalidId     = errors.New("invalid id format")
 	ErrMissingValues = errors.New("missing values: title and description are required")
@@ -18,7 +19,7 @@ type Exam struct {
 	questions   []*Question
 }
 
-func New(id, title, description string, questions []*Question) (*Exam, error) {
+func NewExam(id, title, description string, questions []*Question) (*Exam, error) {
 	if title == "" || description == "" {
 		return nil, ErrMissingValues
 	}
