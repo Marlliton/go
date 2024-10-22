@@ -3,6 +3,7 @@ package mongorepo
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
@@ -17,32 +18,32 @@ type MongoRepository struct {
 }
 
 type mongoExam struct {
-	id          string           `bson:"id"`
-	title       string           `bson:"title"`
-	description string           `bson:"description"`
-	questions   []*mongoQuestion `bson:"questions"`
+	ID          string           `bson:"_id"`
+	Title       string           `bson:"title"`
+	Description string           `bson:"description"`
+	Questions   []*mongoQuestion `bson:"questions"`
 }
 
 type mongoQuestion struct {
-	id        string               `bson:"id"`
-	statement string               `bson:"statement"`
-	items     []*mongoQuestionItem `bson:"items"`
+	ID        string               `bson:"id"`
+	Statement string               `bson:"statement"`
+	Items     []*mongoQuestionItem `bson:"items"`
 }
 
 type mongoQuestionItem struct {
-	id    string `bson:"id"`
-	text  string `bson:"text"`
-	right bool   `bson:"right"`
+	ID    string `bson:"id"`
+	Text  string `bson:"text"`
+	Right bool   `bson:"right"`
 }
 
 func (me *mongoExam) toAggregate() (*exam.Exam, error) {
 	var questions []*exam.Question
-	for _, mq := range me.questions {
+	for _, mq := range me.Questions {
 		questionItems, err := me.buildQuestionItems(mq)
 		if err != nil {
-			return nil, fmt.Errorf("erro creating question items %s, %w", mq.id, err)
+			return nil, fmt.Errorf("erro creating question items %s, %v", mq.ID, err)
 		}
-		ques, err := exam.NewQuestion(mq.id, mq.statement, questionItems)
+		ques, err := exam.NewQuestion(mq.ID, mq.Statement, questionItems)
 		if err != nil {
 			return nil, fmt.Errorf("erro creating question %v", err)
 		}
@@ -50,14 +51,14 @@ func (me *mongoExam) toAggregate() (*exam.Exam, error) {
 		questions = append(questions, ques)
 	}
 
-	return exam.NewExam(me.id, me.title, me.description, questions)
+	return exam.NewExam(me.ID, me.Title, me.Description, nil)
 }
 func (*mongoExam) buildQuestionItems(mq *mongoQuestion) ([]*exam.QuestionItem, error) {
-	questionItems := make([]*exam.QuestionItem, len(mq.items))
-	for i, mqi := range mq.items {
-		item, err := exam.NewQuestionItem(mqi.id, mqi.text, mqi.right)
+	questionItems := make([]*exam.QuestionItem, len(mq.Items))
+	for i, mqi := range mq.Items {
+		item, err := exam.NewQuestionItem(mqi.ID, mqi.Text, mqi.Right)
 		if err != nil {
-			return nil, fmt.Errorf("erro creating item %w", err)
+			return nil, fmt.Errorf("erro creating item %v", err)
 		}
 		questionItems[i] = item
 	}
@@ -73,23 +74,23 @@ func newFromExam(ex exam.Exam) mongoExam {
 
 		for j, qi := range q.GetItems() {
 			mongoItems[j] = &mongoQuestionItem{
-				id:    qi.GetID(),
-				text:  qi.GetText(),
-				right: qi.GetIsRight(),
+				ID:    qi.GetID(),
+				Text:  qi.GetText(),
+				Right: qi.GetIsRight(),
 			}
 		}
 		mongoQuestions[i] = &mongoQuestion{
-			id:        q.GetID(),
-			statement: q.GetStatement(),
-			items:     mongoItems,
+			ID:        q.GetID(),
+			Statement: q.GetStatement(),
+			Items:     mongoItems,
 		}
 	}
 
 	return mongoExam{
-		id:          ex.GetID(),
-		description: ex.GetDescription(),
-		title:       ex.GetTitle(),
-		questions:   mongoQuestions,
+		ID:          ex.GetID(),
+		Description: ex.GetDescription(),
+		Title:       ex.GetTitle(),
+		Questions:   mongoQuestions,
 	}
 
 }
@@ -114,7 +115,7 @@ func New(ctx context.Context, uriConnection string) (*MongoRepository, error) {
 func (mr *MongoRepository) Get(id string) (*exam.Exam, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result := mr.exam.FindOne(ctx, bson.D{{Key: "id", Value: id}})
+	result := mr.exam.FindOne(ctx, bson.D{{Key: "_id", Value: id}})
 
 	var me mongoExam
 
@@ -140,7 +141,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 		var mongoEx mongoExam
 
 		if err := cursor.Decode(&mongoEx); err != nil {
-			return nil, fmt.Errorf("erro decoding exam %w", err)
+			return nil, fmt.Errorf("erro decoding exam %v", err)
 		}
 
 		aggregateExam, err := mongoEx.toAggregate()
@@ -152,7 +153,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, fmt.Errorf("erro while iterating over exams %w", err)
+		return nil, fmt.Errorf("erro while iterating over exams %v", err)
 	}
 
 	return exams, nil
@@ -163,10 +164,11 @@ func (mr *MongoRepository) Save(exAdd *exam.Exam) error {
 	defer cancel()
 
 	doc := newFromExam(*exAdd)
+	log.Printf("Documento gerado %+v\n", doc)
 
 	_, err := mr.exam.InsertOne(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("erro inserting exam into mongoDB %w", err)
+		return fmt.Errorf("erro inserting exam into mongoDB %v", err)
 	}
 	return nil
 }
@@ -177,9 +179,9 @@ func (mr *MongoRepository) Update(updEx *exam.Exam) error {
 
 	updatedDoc := newFromExam(*updEx)
 
-	_, err := mr.exam.UpdateOne(ctx, bson.D{{Key: "id", Value: updatedDoc.id}}, updatedDoc)
+	_, err := mr.exam.UpdateOne(ctx, bson.D{{Key: "_id", Value: updatedDoc.ID}}, updatedDoc)
 	if err != nil {
-		return fmt.Errorf("erro updating exam %s, %w", updatedDoc.id, err)
+		return fmt.Errorf("erro updating exam %s, %v", updatedDoc.ID, err)
 	}
 
 	return nil
@@ -189,9 +191,9 @@ func (mr *MongoRepository) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := mr.exam.DeleteOne(ctx, bson.D{{Key: "id", Value: id}})
+	_, err := mr.exam.DeleteOne(ctx, bson.D{{Key: "_id", Value: id}})
 	if err != nil {
-		return fmt.Errorf("erro deleting exam %s, %w", id, err)
+		return fmt.Errorf("erro deleting exam %s, %v", id, err)
 	}
 
 	return nil
