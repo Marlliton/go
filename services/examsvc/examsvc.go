@@ -1,15 +1,12 @@
 package examsvc
 
 import (
-	"errors"
-
 	"github.com/Marlliton/go-quizzer/domain/exam"
+	"github.com/Marlliton/go-quizzer/domain/fail"
 	"github.com/Marlliton/go-quizzer/infrastructure/exam/memoryrepo"
 )
 
-var (
-	ErrExamAlreadyExists = errors.New("exam already exists")
-)
+var errCodeExamSvc = "ExamService"
 
 type ExamServiceConfig func(es *ExamService) error
 
@@ -33,7 +30,7 @@ func NewExamsvc(cfgs ...ExamServiceConfig) (*ExamService, error) {
 func (es *ExamService) Save(e *exam.Exam) error {
 	existingExam, err := es.repo.Get(e.GetID())
 	if err == nil && existingExam != nil {
-		return ErrExamAlreadyExists
+		return fail.WithAlreadyExistsError(errCodeExamSvc, "exam already exists")
 	}
 
 	err = es.repo.Save(e)

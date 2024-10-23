@@ -1,13 +1,10 @@
 package exam
 
 import (
-	"errors"
+	"github.com/Marlliton/go-quizzer/domain/fail"
 )
 
-var (
-	ErrQuestionNotFound = errors.New("question not found")
-	ErrAnswerNotFound   = errors.New("answer not found")
-)
+var errCodeExamAnswer = "ExamAnswer"
 
 type Answer struct {
 	questionID     string
@@ -39,11 +36,11 @@ func (ea *ExamAnswer) getQuestionByID(id string) *Question {
 func (ea *ExamAnswer) SubmitAnswer(questionID, itemID string) error {
 	question := ea.getQuestionByID(questionID)
 	if question == nil {
-		return ErrQuestionNotFound
+		return fail.WithNotFoundError(errCodeExamAnswer, "question not found")
 	}
 	item := question.GetCorrectItem(itemID)
 	if item == nil {
-		return ErrAnswerNotFound
+		return fail.WithNotFoundError(errCodeExamAnswer, "answer not found")
 	}
 
 	ea.currentQuestionID = questionID
@@ -106,7 +103,7 @@ func (ea *ExamAnswer) PreviousQuestion() {
 func (ea *ExamAnswer) GetCurrentQuestion() (*Question, error) {
 	if ea.currentQuestionID == "" {
 		if len(ea.getQuestions()) <= 0 {
-			return nil, ErrQuestionNotFound
+			return nil, fail.WithNotFoundError(errCodeExamAnswer, "question not found")
 		}
 		return ea.getQuestions()[0], nil
 	}
@@ -117,7 +114,7 @@ func (ea *ExamAnswer) GetCurrentQuestion() (*Question, error) {
 		}
 	}
 
-	return nil, ErrQuestionNotFound
+	return nil, fail.WithNotFoundError(errCodeExamAnswer, "question not found")
 }
 
 func (ea *ExamAnswer) Score() int {

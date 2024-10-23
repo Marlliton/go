@@ -1,12 +1,15 @@
 package memoryrepo
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
+	"github.com/Marlliton/go-quizzer/domain/fail"
 )
 
 func TestMemoryExam_Save(t *testing.T) {
+
 	repo := New()
 	toSaveExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
@@ -14,37 +17,44 @@ func TestMemoryExam_Save(t *testing.T) {
 	}
 
 	type testCase struct {
-		name        string
-		param       *exam.Exam
-		exec        func(*exam.Exam) error
-		expectedErr error
+		name  string
+		param *exam.Exam
+		exec  func(*exam.Exam, *testing.T)
 	}
 
 	testCases := []testCase{
 		{
-			name:        "Save exam",
-			param:       toSaveExam,
-			exec:        func(e *exam.Exam) error { return repo.Save(e) },
-			expectedErr: nil,
+			name:  "Save exam",
+			param: toSaveExam,
+			exec: func(e *exam.Exam, t *testing.T) {
+				err := repo.Save(e)
+				if err != nil {
+					t.Fatalf("expected err nil, got %v", err)
+				}
+			},
 		}, {
-			name:        "Failed to save existing exam",
-			param:       toSaveExam,
-			exec:        func(e *exam.Exam) error { return repo.Save(e) },
-			expectedErr: exam.ErrExamAlreadyExists,
+			name:  "Failed to save existing exam",
+			param: toSaveExam,
+			exec: func(e *exam.Exam, t *testing.T) {
+				var errAlreadyExists *fail.AlreadyExistsError
+
+				err := repo.Save(e)
+				if !errors.As(err, &errAlreadyExists) {
+					t.Fatalf("expected error %v, got %v", errAlreadyExists, err)
+				}
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.exec(tc.param)
-			if err != tc.expectedErr {
-				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
-			}
+			tc.exec(tc.param, t)
 		})
 	}
 }
 
 func TestMemoryExam_Get(t *testing.T) {
+
 	repo := New()
 	existingExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
@@ -59,45 +69,57 @@ func TestMemoryExam_Get(t *testing.T) {
 	repo.Save(secondExam)
 
 	type testCase struct {
-		name        string
-		param       string
-		exec        func(string) (interface{}, error)
-		expectedErr error
+		name  string
+		param string
+		exec  func(string, *testing.T)
 	}
 
 	testCases := []testCase{
 		{
-			name:        "Get existing by id",
-			param:       existingExam.GetID(),
-			exec:        func(id string) (interface{}, error) { return repo.Get(id) },
-			expectedErr: nil,
+			name:  "Get existing by id",
+			param: existingExam.GetID(),
+			exec: func(id string, t *testing.T) {
+				t.Helper()
+
+				_, err := repo.Get(id)
+
+				if err != nil {
+					t.Fatalf("expected err nil, got %v", err)
+				}
+			},
 		}, {
-			name:        "Get non-existing by id",
-			param:       "non-existing",
-			exec:        func(id string) (interface{}, error) { return repo.Get(id) },
-			expectedErr: exam.ErrExamNotFound,
+			name:  "Get non-existing by id",
+			param: "non-existing",
+			exec: func(id string, t *testing.T) {
+				t.Helper()
+				var errNotFound *fail.NotFoundError
+
+				_, err := repo.Get(id)
+				if !errors.As(err, &errNotFound) {
+					t.Fatalf("expected error %v, got %v", errNotFound, err)
+				}
+			},
 		}, {
-			name:        "Get all exams",
-			param:       "",
-			exec:        func(_ string) (interface{}, error) { return repo.GetAll() },
-			expectedErr: nil,
+			name:  "Get all exams",
+			param: "",
+			exec: func(_ string, t *testing.T) {
+				t.Helper()
+				exams, err := repo.GetAll()
+				if err != nil {
+					t.Fatalf("expected error nil, got %v", err)
+				}
+
+				if len(exams) != 2 {
+					t.Fatalf("expected at least tow exams, got %d", len(exams))
+				}
+
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := tc.exec(tc.param)
-			if err != tc.expectedErr {
-				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
-			}
-
-			if tc.name == "Get all exams" {
-				exams := result.([]*exam.Exam)
-
-				if len(exams) != 2 {
-					t.Fatalf("expected at least tow exams, got %d", len(exams))
-				}
-			}
+			tc.exec(tc.param, t)
 		})
 	}
 }
@@ -118,48 +140,57 @@ func TestMemoryExam_Update(t *testing.T) {
 	}
 
 	type testCase struct {
-		name        string
-		param       *exam.Exam
-		exec        func(*exam.Exam) error
-		expectedErr error
+		name  string
+		param *exam.Exam
+		exec  func(*exam.Exam, *testing.T)
 	}
 
 	testCases := []testCase{
 		{
 			name:  "Update exam title",
 			param: existingExam,
-			exec: func(e *exam.Exam) error {
+			exec: func(e *exam.Exam, t *testing.T) {
+				t.Helper()
+
 				e.SetTitle("Title modifield")
-				return repo.Update(e)
+
+				err := repo.Update(e)
+				if err != nil {
+					t.Fatalf("expected error nil, got %v", err)
+				}
+				updExam, err := repo.Get(e.GetID())
+				if err != nil {
+					return
+				}
+				if updExam.GetTitle() != "Title modifield" {
+					t.Fatalf("expected title %s, got %s", "Title modifield", updExam.GetTitle())
+				}
 			},
-			expectedErr: nil,
 		}, {
-			name:        "Failed to save existing exam",
-			param:       nonExistingExam,
-			exec:        func(e *exam.Exam) error { return repo.Update(e) },
-			expectedErr: exam.ErrExamNotFound,
+			name:  "Failed to save existing exam",
+			param: nonExistingExam,
+			exec: func(e *exam.Exam, t *testing.T) {
+				t.Helper()
+				var notFoundErr *fail.NotFoundError
+
+				err := repo.Update(e)
+				if !errors.As(err, &notFoundErr) {
+					t.Fatalf("expected error %v, got %v", notFoundErr, err)
+
+				}
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.exec(tc.param)
-			if err != tc.expectedErr {
-				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
-			}
-
-			updExam, err := repo.Get(tc.param.GetID())
-			if err != nil {
-				return
-			}
-			if updExam.GetTitle() != "Title modifield" {
-				t.Fatalf("expected title %s, got %s", "Title modifield", updExam.GetTitle())
-			}
+			tc.exec(tc.param, t)
 		})
 	}
 }
 
 func TestMemoryExam_Delete(t *testing.T) {
+
 	repo := New()
 	exam1, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
@@ -178,43 +209,43 @@ func TestMemoryExam_Delete(t *testing.T) {
 	}
 
 	type testCase struct {
-		name        string
-		param       string
-		exec        func(string) error
-		expectedErr error
+		name  string
+		param string
+		exec  func(string, *testing.T)
 	}
 
 	testCases := []testCase{
 		{
-			name:        "Delete exam",
-			param:       exam1.GetID(),
-			exec:        func(id string) error { return repo.Delete(id) },
-			expectedErr: nil,
+			name:  "Delete exam",
+			param: exam1.GetID(),
+			exec: func(id string, t *testing.T) {
+				t.Helper()
+
+				err := repo.Delete(id)
+				if err != nil {
+					t.Fatalf("expected err nil, got %v", err)
+				}
+			},
 		}, {
-			name:        "Failed to delete non-existing exam",
-			param:       "non-existing",
-			exec:        func(id string) error { return repo.Delete(id) },
-			expectedErr: exam.ErrExamNotFound,
+			name:  "Failed to delete non-existing exam",
+			param: "non-existing",
+			exec: func(id string, t *testing.T) {
+				t.Helper()
+
+				var notFoundErr *fail.NotFoundError
+				err := repo.Delete(id)
+
+				if !errors.As(err, &notFoundErr) {
+					t.Fatalf("expected error %v, got %v", notFoundErr, err)
+				}
+
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.exec(tc.param)
-			if err != tc.expectedErr {
-				t.Fatalf("expected error %v, got %v", tc.expectedErr, err)
-			}
-
-			if tc.name == "Get all exams" {
-
-				result, err := repo.GetAll()
-				if err != nil {
-					t.Fatal(err)
-				}
-				if len(result) != 1 {
-					t.Fatalf("expected at least one exam, got %d", len(result))
-				}
-			}
+			tc.exec(tc.param, t)
 		})
 	}
 }

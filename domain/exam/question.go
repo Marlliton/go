@@ -1,6 +1,9 @@
 package exam
 
-import "github.com/google/uuid"
+import (
+	"github.com/Marlliton/go-quizzer/domain/fail"
+	"github.com/google/uuid"
+)
 
 type Question struct {
 	id        string
@@ -8,15 +11,17 @@ type Question struct {
 	items     []*QuestionItem
 }
 
+var errQuestionCode = "Question"
+
 func NewQuestion(id, statement string, items []*QuestionItem) (*Question, error) {
 	if statement == "" {
-		return nil, ErrMissingValues
+		return nil, fail.WithValidationError(errQuestionCode, "statement are required")
 	}
 	if id == "" {
 		id = uuid.New().String()
 	} else {
 		if _, err := uuid.Parse(id); err != nil {
-			return nil, ErrInvalidId
+			return nil, fail.WithValidationError(errQuestionCode, "invalid id format")
 		}
 	}
 

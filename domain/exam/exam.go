@@ -1,15 +1,8 @@
 package exam
 
 import (
-	"errors"
-
+	"github.com/Marlliton/go-quizzer/domain/fail"
 	"github.com/google/uuid"
-)
-
-// TODO: Padronizar todos os erros da aplicação
-var (
-	ErrInvalidId     = errors.New("invalid id format")
-	ErrMissingValues = errors.New("missing values: title and description are required")
 )
 
 type Exam struct {
@@ -21,14 +14,14 @@ type Exam struct {
 
 func NewExam(id, title, description string, questions []*Question) (*Exam, error) {
 	if title == "" || description == "" {
-		return nil, ErrMissingValues
+		return nil, fail.WithValidationError("Exam", "title and description are required")
 	}
 
 	if id == "" {
 		id = uuid.New().String()
 	} else {
 		if _, err := uuid.Parse(id); err != nil {
-			return nil, ErrInvalidId
+			return nil, fail.WithValidationError("uuid", "invalid id format")
 		}
 	}
 

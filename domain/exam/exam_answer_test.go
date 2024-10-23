@@ -1,7 +1,10 @@
 package exam
 
 import (
+	"errors"
 	"testing"
+
+	"github.com/Marlliton/go-quizzer/domain/fail"
 )
 
 func TestExamAnswer_NextQuestion_And_PreviousQuestion(t *testing.T) {
@@ -167,7 +170,7 @@ func TestExamAnswer_SubmitQuestion(t *testing.T) {
 			itemID:      "item1",
 			expectSave:  false, // Não deve adicionar nada
 			isRight:     false,
-			expectedErr: ErrQuestionNotFound,
+			expectedErr: nil,
 		},
 		{
 			name:        "Submissão duplicada para a mesma pergunta",
@@ -182,7 +185,16 @@ func TestExamAnswer_SubmitQuestion(t *testing.T) {
 	for _, tc := range testeCases {
 
 		t.Run(tc.name, func(t *testing.T) {
+			var errNotFound *fail.NotFoundError
 			err := examAnswer.SubmitAnswer(tc.questionID, tc.itemID)
+
+			if tc.name == "Submissão de pergunta inexistente" {
+				if !errors.As(err, &errNotFound) {
+					t.Fatalf("expected error %v, got %v", errNotFound, err)
+				}
+				return
+			}
+
 			if err != tc.expectedErr {
 				t.Fatalf("Expected erro %v, got %v", tc.expectedErr, err)
 			}
