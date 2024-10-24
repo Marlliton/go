@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
@@ -184,8 +185,18 @@ func (mr *MongoRepository) Update(updEx *exam.Exam) error {
 
 	updatedDoc := newFromExam(*updEx)
 
-	_, err := mr.exam.UpdateOne(ctx, bson.D{{Key: "_id", Value: updatedDoc.ID}}, updatedDoc)
+	_, err := mr.exam.UpdateOne(
+		ctx,
+		bson.D{{
+			Key:   "_id",
+			Value: updatedDoc.ID,
+		}},
+		bson.D{{
+			Key:   "$set",
+			Value: updatedDoc,
+		}})
 	if err != nil {
+		log.Printf("Erro ao atualizar")
 		return fmt.Errorf("erro updating exam %s, %v", updatedDoc.ID, err)
 	}
 
@@ -196,7 +207,10 @@ func (mr *MongoRepository) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := mr.exam.DeleteOne(ctx, bson.D{{Key: "_id", Value: id}})
+	result, err := mr.exam.DeleteOne(ctx, bson.D{{Key: "_id", Value: id}})
+	if result.DeletedCount == 0 {
+		return fail.WithNotFoundError(errMongoCode, "exam not found")
+	}
 	if err != nil {
 		return fmt.Errorf("erro deleting exam %s, %v", id, err)
 	}
