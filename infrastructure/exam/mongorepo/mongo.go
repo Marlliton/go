@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
@@ -116,6 +115,7 @@ func New(ctx context.Context, uriConnection string) (*MongoRepository, error) {
 	return &repo, nil
 }
 
+// TODO: this needs internal logs in all methods
 func (mr *MongoRepository) Get(id string) (*exam.Exam, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -127,7 +127,7 @@ func (mr *MongoRepository) Get(id string) (*exam.Exam, error) {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, fail.WithNotFoundError(errMongoCode, "exam not found")
 		}
-		return nil, err
+		return nil, fail.WithInternalError(errMongoCode, "internal server error (GET)")
 	}
 
 	return me.toAggregate()
@@ -139,7 +139,8 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 
 	cursor, err := mr.exam.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, err
+		return nil, fail.WithInternalError(errMongoCode, "internal server error (GET ALL)")
+
 	}
 	defer cursor.Close(ctx)
 
@@ -148,7 +149,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 		var mongoEx mongoExam
 
 		if err := cursor.Decode(&mongoEx); err != nil {
-			return nil, fmt.Errorf("erro decoding exam %v", err)
+			return nil, fail.WithInternalError(errMongoCode, "error decoding exams (GET ALL)")
 		}
 
 		aggregateExam, err := mongoEx.toAggregate()
@@ -160,7 +161,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, fmt.Errorf("erro while iterating over exams %v", err)
+		return nil, fail.WithInternalError(errMongoCode, "erro while iterating over exams (GET ALL)")
 	}
 
 	return exams, nil
@@ -174,7 +175,7 @@ func (mr *MongoRepository) Save(exAdd *exam.Exam) error {
 
 	_, err := mr.exam.InsertOne(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("erro inserting exam into mongoDB %v", err)
+		return fail.WithInternalError(errMongoCode, "erro inserting exam into mongoDB (SAVE)")
 	}
 	return nil
 }
@@ -196,8 +197,7 @@ func (mr *MongoRepository) Update(updEx *exam.Exam) error {
 			Value: updatedDoc,
 		}})
 	if err != nil {
-		log.Printf("Erro ao atualizar")
-		return fmt.Errorf("erro updating exam %s, %v", updatedDoc.ID, err)
+		return fail.WithInternalError(errMongoCode, "erro updating exam (UPDATE)")
 	}
 
 	return nil
@@ -212,7 +212,7 @@ func (mr *MongoRepository) Delete(id string) error {
 		return fail.WithNotFoundError(errMongoCode, "exam not found")
 	}
 	if err != nil {
-		return fmt.Errorf("erro deleting exam %s, %v", id, err)
+		return fail.WithInternalError(errMongoCode, "erro deleting exam (DELETE)")
 	}
 
 	return nil
