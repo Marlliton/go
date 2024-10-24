@@ -5,13 +5,13 @@ import (
 	"github.com/google/uuid"
 )
 
+var errItemCode = "QuestionItem"
+
 type QuestionItem struct {
 	id    string
 	text  string
 	right bool
 }
-
-var errItemCode = "QuestionItem"
 
 func NewQuestionItem(id, text string, right bool) (*QuestionItem, error) {
 	if text == "" {

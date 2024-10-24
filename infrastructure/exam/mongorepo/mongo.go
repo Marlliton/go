@@ -2,15 +2,18 @@ package mongorepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
+	"github.com/Marlliton/go-quizzer/domain/fail"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var errMongoCode = "MongoRepository"
 
 type MongoRepository struct {
 	db   *mongo.Database
@@ -119,7 +122,10 @@ func (mr *MongoRepository) Get(id string) (*exam.Exam, error) {
 
 	var me mongoExam
 
-	if err := result.Decode(me); err != nil {
+	if err := result.Decode(&me); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fail.WithNotFoundError(errMongoCode, "exam not found")
+		}
 		return nil, err
 	}
 
@@ -164,7 +170,6 @@ func (mr *MongoRepository) Save(exAdd *exam.Exam) error {
 	defer cancel()
 
 	doc := newFromExam(*exAdd)
-	log.Printf("Documento gerado %+v\n", doc)
 
 	_, err := mr.exam.InsertOne(ctx, doc)
 	if err != nil {

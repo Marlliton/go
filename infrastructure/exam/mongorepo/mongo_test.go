@@ -2,42 +2,101 @@ package mongorepo
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
+	"github.com/Marlliton/go-quizzer/domain/fail"
 )
 
-func TestMongoRepository_Save(t *testing.T) {
-	repo, err := New(context.Background(), "mongodb://localhost:27017")
+var (
+	ctx           = context.Background()
+	uriConnection = "mongodb://localhost:27017"
+)
+
+func TestMongoRepository_Get(t *testing.T) {
+	repo, err := New(ctx, uriConnection)
 	if err != nil {
+		t.Fatal(err)
+	}
+
+	savedExam := init_exam(t)
+	err = repo.Save(savedExam)
+	if err != nil {
+		t.Fatalf("err saving exam %v", err)
+	}
+
+	testCases := []struct {
+		name  string
+		param string
+		exec  func(string, *testing.T)
+	}{
+		{
+			name:  "Get exam by id",
+			param: savedExam.GetID(),
+			exec: func(id string, t *testing.T) {
+				t.Helper()
+				e, err := repo.Get(id)
+				if err != nil {
+					t.Fatalf("error getting exam %v", err)
+				}
+
+				if e.GetID() != id {
+					t.Fatal("divergent result")
+				}
+			},
+		}, {
+			name:  "No exam result by id",
+			param: "Get non-existing exam by id",
+			exec: func(id string, t *testing.T) {
+				t.Helper()
+				var expectedErr *fail.NotFoundError
+
+				_, err := repo.Get(id)
+				if !errors.As(err, &expectedErr) {
+					t.Fatalf("expectedErr: NotFoundError, got %v", err)
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.exec(tc.param, t)
+		})
+	}
+}
+
+func TestMongoRepository_Save(t *testing.T) {
+	repo, err := New(ctx, uriConnection)
+	if err != nil {
+
 		t.Fatal(err)
 	}
 
 	toSaveExam := init_exam(t)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	testeCases := []struct {
-		name        string
-		param       *exam.Exam
-		exec        func(*exam.Exam) error
-		expectedErr error
+		name  string
+		param *exam.Exam
+		exec  func(*exam.Exam, *testing.T)
 	}{
 		{
-			name:        "Save Exam",
-			param:       toSaveExam,
-			exec:        func(e *exam.Exam) error { return repo.Save(e) },
-			expectedErr: nil,
+			name:  "Save Exam",
+			param: toSaveExam,
+			exec: func(e *exam.Exam, t *testing.T) {
+				t.Helper()
+				err := repo.Save(e)
+				if err != nil {
+					t.Fatalf("expected no error, got %v", err)
+				}
+			},
 		},
 	}
 
 	for _, tc := range testeCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.exec(tc.param)
-			if err != tc.expectedErr {
-				t.Errorf("expected error %v, got %v", tc.expectedErr, err)
-			}
+			tc.exec(tc.param, t)
 		})
 	}
 }
