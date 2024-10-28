@@ -1,47 +1,47 @@
 package fail
 
-type gerericError struct {
+type GerericError struct {
 	Code    string
 	Message string
 }
 
-func (ge *gerericError) Error() string {
+func (ge *GerericError) Error() string {
 	return ge.Message
 }
 
 type ValidationError struct {
-	gerericError
+	GerericError
 }
 type NotFoundError struct {
-	gerericError
+	GerericError
 }
 type AlreadyExistsError struct {
-	gerericError
+	GerericError
 }
 type InternalError struct {
-	gerericError
+	GerericError
 }
 
 func WithNotFoundError(code, message string) *NotFoundError {
-	return &NotFoundError{gerericError{
+	return &NotFoundError{GerericError{
 		code, message,
 	}}
 }
 
 func WithAlreadyExistsError(code, message string) *AlreadyExistsError {
-	return &AlreadyExistsError{gerericError{
+	return &AlreadyExistsError{GerericError{
 		code, message,
 	}}
 }
 
 func WithValidationError(code, message string) *ValidationError {
-	return &ValidationError{gerericError{
+	return &ValidationError{GerericError{
 		code, message,
 	}}
 }
 
 func WithInternalError(code, message string) *InternalError {
-	return &InternalError{gerericError{
+	return &InternalError{GerericError{
 		code, message,
 	}}
 }
