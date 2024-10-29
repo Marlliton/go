@@ -34,6 +34,7 @@ func WriteError(err error, w http.ResponseWriter) {
 
 func writeTypedError(w http.ResponseWriter, code int, err *fail.GerericError) {
 	w.Header().Set("Content-Type", "application/json")
+
 	errPayload := &httpError{
 		Code:    err.Code,
 		Message: err.Message,

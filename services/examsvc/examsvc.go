@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/Marlliton/go-quizzer/domain/exam"
-	"github.com/Marlliton/go-quizzer/infrastructure/exam/memoryrepo"
-	"github.com/Marlliton/go-quizzer/infrastructure/exam/mongorepo"
+	"github.com/Marlliton/go-quizzer/infra/database/memory"
+	"github.com/Marlliton/go-quizzer/infra/database/mongo"
 )
 
 var errCodeExamSvc = "ExamService"
@@ -30,7 +30,7 @@ func NewExamsvc(cfgs ...ExamServiceConfig) (*ExamService, error) {
 }
 
 func WithMongoExamRepository(ctx context.Context, uriConnection string) ExamServiceConfig {
-	repo, err := mongorepo.New(ctx, uriConnection)
+	repo, err := mongo.NewMongoExamRepository(ctx, uriConnection)
 
 	return func(es *ExamService) error {
 		if err != nil {
@@ -44,7 +44,7 @@ func WithMongoExamRepository(ctx context.Context, uriConnection string) ExamServ
 }
 
 func WithMemoryExamRepository() ExamServiceConfig {
-	repo := memoryrepo.New()
+	repo := memory.NewInMemoryExamRepository()
 
 	return func(es *ExamService) error {
 		es.repo = repo

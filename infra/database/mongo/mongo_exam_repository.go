@@ -1,4 +1,4 @@
-package mongorepo
+package mongo
 
 import (
 	"context"
@@ -98,7 +98,7 @@ func newFromExam(ex exam.Exam) mongoExam {
 
 }
 
-func New(ctx context.Context, uriConnection string) (*MongoRepository, error) {
+func NewMongoExamRepository(ctx context.Context, uriConnection string) (*MongoRepository, error) {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uriConnection))
 	if err != nil {
 		return nil, err

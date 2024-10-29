@@ -3,7 +3,8 @@ package controller
 import (
 	"net/http"
 
-	httperror "github.com/Marlliton/go-quizzer/cmd/http_error"
+	"github.com/Marlliton/go-quizzer/infra/api/dto"
+	"github.com/Marlliton/go-quizzer/infra/api/httperror"
 	"github.com/Marlliton/go-quizzer/services/examsvc"
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +41,9 @@ func (ec *examController) Get(ctx *gin.Context) {
 		return
 	}
 
+	response := dto.ToExamDTOResponse(*exam)
+
+	ctx.JSON(http.StatusOK, response)
 }
 func (ec *examController) GetAll(ctx *gin.Context) {
 

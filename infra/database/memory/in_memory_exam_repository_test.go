@@ -1,4 +1,4 @@
-package memoryrepo
+package memory
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 
 func TestMemoryExam_Save(t *testing.T) {
 
-	repo := New()
+	repo := NewInMemoryExamRepository()
 	toSaveExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -55,7 +55,7 @@ func TestMemoryExam_Save(t *testing.T) {
 
 func TestMemoryExam_Get(t *testing.T) {
 
-	repo := New()
+	repo := NewInMemoryExamRepository()
 	existingExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -125,7 +125,7 @@ func TestMemoryExam_Get(t *testing.T) {
 }
 
 func TestMemoryExam_Update(t *testing.T) {
-	repo := New()
+	repo := NewInMemoryExamRepository()
 	existingExam, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -191,7 +191,7 @@ func TestMemoryExam_Update(t *testing.T) {
 
 func TestMemoryExam_Delete(t *testing.T) {
 
-	repo := New()
+	repo := NewInMemoryExamRepository()
 	exam1, err := exam.NewExam("", "Existing Exam", "Just testing", nil)
 	if err != nil {
 		t.Fatal(err)

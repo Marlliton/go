@@ -1,4 +1,4 @@
-package memoryrepo
+package memory
 
 import (
 	"sync"
@@ -14,7 +14,7 @@ type MemoryRepository struct {
 	sync.Mutex
 }
 
-func New() *MemoryRepository {
+func NewInMemoryExamRepository() *MemoryRepository {
 	return &MemoryRepository{
 		exams: make(map[string]*exam.Exam),
 	}

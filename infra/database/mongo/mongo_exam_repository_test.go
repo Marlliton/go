@@ -1,4 +1,4 @@
-package mongorepo
+package mongo
 
 import (
 	"context"
@@ -22,7 +22,7 @@ var (
 func TestMain(m *testing.M) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	repoCreated, err := New(ctx, uriConnection)
+	repoCreated, err := NewMongoExamRepository(ctx, uriConnection)
 	if err != nil {
 		log.Fatalf("failed to connect to MongoDB %v", err)
 	}

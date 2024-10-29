@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Marlliton/go-quizzer/cmd/route"
+	"github.com/Marlliton/go-quizzer/infra/api/route"
 	"github.com/gin-gonic/gin"
 )
 
