@@ -35,15 +35,15 @@ func (ec *examController) Get(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Id is required"})
 		return
 	}
+
 	exam, err := ec.examSvc.Get(id)
 	if err != nil {
 		httperror.WriteError(err, ctx.Writer)
 		return
 	}
 
-	response := dto.ToExamDTOResponse(*exam)
-
-	ctx.JSON(http.StatusOK, response)
+	dto := dto.ExamDTO{Entity: exam}
+	ctx.JSON(http.StatusOK, dto.ToResponse())
 }
 func (ec *examController) GetAll(ctx *gin.Context) {
 

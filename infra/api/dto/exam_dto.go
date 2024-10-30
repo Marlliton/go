@@ -2,8 +2,8 @@ package dto
 
 import "github.com/Marlliton/go-quizzer/domain/exam"
 
-type Exam struct {
-	*exam.Exam
+type ExamDTO struct {
+	Entity *exam.Exam
 }
 
 type examDTOResponse struct {
@@ -25,20 +25,20 @@ type questionItemDTOResponse struct {
 	Right bool   `json:"right"`
 }
 
-func ToExamDTOResponse(e exam.Exam) *examDTOResponse {
+func (ed *ExamDTO) ToResponse() *examDTOResponse {
 	return &examDTOResponse{
-		ID:          e.GetID(),
-		Title:       e.GetTitle(),
-		Description: e.GetDescription(),
-		Questions:   ToQuestionDTOResponse(e.GetQuestions()),
+		ID:          ed.Entity.GetID(),
+		Title:       ed.Entity.GetTitle(),
+		Description: ed.Entity.GetDescription(),
+		Questions:   toQuestionDTOResponse(ed.Entity.GetQuestions()),
 	}
 }
 
-func ToQuestionDTOResponse(questions []*exam.Question) []*questionDTOResponse {
+func toQuestionDTOResponse(questions []*exam.Question) []*questionDTOResponse {
 	result := make([]*questionDTOResponse, len(questions))
 
 	for i, q := range questions {
-		items := ToQuestionItemDTOResponse(q.GetItems())
+		items := toQuestionItemDTOResponse(q.GetItems())
 		result[i] = &questionDTOResponse{
 			ID:        q.GetID(),
 			Statement: q.GetStatement(),
@@ -49,7 +49,7 @@ func ToQuestionDTOResponse(questions []*exam.Question) []*questionDTOResponse {
 	return result
 }
 
-func ToQuestionItemDTOResponse(items []*exam.QuestionItem) []*questionItemDTOResponse {
+func toQuestionItemDTOResponse(items []*exam.QuestionItem) []*questionItemDTOResponse {
 	result := make([]*questionItemDTOResponse, len(items))
 
 	for i, it := range items {

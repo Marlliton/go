@@ -13,8 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var errMongoCode = "MongoRepository"
-
 type MongoRepository struct {
 	db   *mongo.Database
 	exam *mongo.Collection
@@ -125,9 +123,9 @@ func (mr *MongoRepository) Get(id string) (*exam.Exam, error) {
 
 	if err := result.Decode(&me); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, fail.WithNotFoundError(errMongoCode, "exam not found")
+			return nil, fail.WithNotFoundError("decode_error", "exam not found")
 		}
-		return nil, fail.WithInternalError(errMongoCode, "internal server error (GET)")
+		return nil, fail.WithInternalError("internal_error", "internal server error (GET)")
 	}
 
 	return me.toAggregate()
@@ -139,7 +137,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 
 	cursor, err := mr.exam.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, fail.WithInternalError(errMongoCode, "internal server error (GET ALL)")
+		return nil, fail.WithInternalError("internal_error", "internal server error (GET ALL)")
 
 	}
 	defer cursor.Close(ctx)
@@ -149,7 +147,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 		var mongoEx mongoExam
 
 		if err := cursor.Decode(&mongoEx); err != nil {
-			return nil, fail.WithInternalError(errMongoCode, "error decoding exams (GET ALL)")
+			return nil, fail.WithInternalError("internal_error", "error decoding exams (GET ALL)")
 		}
 
 		aggregateExam, err := mongoEx.toAggregate()
@@ -161,7 +159,7 @@ func (mr *MongoRepository) GetAll() ([]*exam.Exam, error) {
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, fail.WithInternalError(errMongoCode, "erro while iterating over exams (GET ALL)")
+		return nil, fail.WithInternalError("internal_error", "erro while iterating over exams (GET ALL)")
 	}
 
 	return exams, nil
@@ -175,7 +173,7 @@ func (mr *MongoRepository) Save(exAdd *exam.Exam) error {
 
 	_, err := mr.exam.InsertOne(ctx, doc)
 	if err != nil {
-		return fail.WithInternalError(errMongoCode, "erro inserting exam into mongoDB (SAVE)")
+		return fail.WithInternalError("internal_error", "erro inserting exam into mongoDB (SAVE)")
 	}
 	return nil
 }
@@ -197,7 +195,7 @@ func (mr *MongoRepository) Update(updEx *exam.Exam) error {
 			Value: updatedDoc,
 		}})
 	if err != nil {
-		return fail.WithInternalError(errMongoCode, "erro updating exam (UPDATE)")
+		return fail.WithInternalError("internal_error", "erro updating exam (UPDATE)")
 	}
 
 	return nil
@@ -209,10 +207,10 @@ func (mr *MongoRepository) Delete(id string) error {
 
 	result, err := mr.exam.DeleteOne(ctx, bson.D{{Key: "_id", Value: id}})
 	if result.DeletedCount == 0 {
-		return fail.WithNotFoundError(errMongoCode, "exam not found")
+		return fail.WithNotFoundError("not_found_error", "exam not found")
 	}
 	if err != nil {
-		return fail.WithInternalError(errMongoCode, "erro deleting exam (DELETE)")
+		return fail.WithInternalError("internal_error", "erro deleting exam (DELETE)")
 	}
 
 	return nil

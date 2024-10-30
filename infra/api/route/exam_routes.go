@@ -1,28 +1,16 @@
 package route
 
 import (
-	"encoding/json"
-
+	"github.com/Marlliton/go-quizzer/infra/api/controller"
 	"github.com/gin-gonic/gin"
 )
 
-func Exam(rg *gin.RouterGroup, controllers any) {
+func Exam(rg *gin.RouterGroup, controllers controller.ExamController) {
 	group := rg.Group("exam")
 
-	group.GET("/", func(ctx *gin.Context) {
-		type ColorGroup struct {
-			ID     int
-			Name   string
-			Colors []string
-		}
-		group := ColorGroup{
-			ID:     1,
-			Name:   "Reds",
-			Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
-		}
-		ctx.Writer.Header().Set("Content-Type", "application/json")
-		b, _ := json.Marshal(group)
-
-		ctx.Writer.Write(b)
-	})
+	group.GET("/:id", controllers.Get)
+	group.GET("/", controllers.GetAll)
+	group.POST("/", controllers.Save)
+	group.PUT("/", controllers.Update)
+	group.DELETE("/", controllers.Delete)
 }
