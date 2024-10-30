@@ -30,6 +30,8 @@ func WriteError(err error, w http.ResponseWriter) {
 	if errors.As(err, &alreadyExistsError) {
 		writeTypedError(w, http.StatusConflict, &alreadyExistsError.GerericError)
 	}
+
+	writeTypedError(w, http.StatusInternalServerError, &internalError.GerericError)
 }
 
 func writeTypedError(w http.ResponseWriter, code int, err *fail.GerericError) {

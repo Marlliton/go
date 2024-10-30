@@ -52,7 +52,7 @@ func (me *mongoExam) toAggregate() (*exam.Exam, error) {
 		questions = append(questions, ques)
 	}
 
-	return exam.NewExam(me.ID, me.Title, me.Description, nil)
+	return exam.NewExam(me.ID, me.Title, me.Description, questions)
 }
 func (*mongoExam) buildQuestionItems(mq *mongoQuestion) ([]*exam.QuestionItem, error) {
 	questionItems := make([]*exam.QuestionItem, len(mq.Items))

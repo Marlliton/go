@@ -5,6 +5,7 @@ import (
 
 	"github.com/Marlliton/go-quizzer/infra/api/dto"
 	"github.com/Marlliton/go-quizzer/infra/api/httperror"
+	"github.com/Marlliton/go-quizzer/infra/api/mapper"
 	"github.com/Marlliton/go-quizzer/services/examsvc"
 	"github.com/gin-gonic/gin"
 )
@@ -42,14 +43,42 @@ func (ec *examController) Get(ctx *gin.Context) {
 		return
 	}
 
-	dto := dto.ExamDTO{Entity: exam}
-	ctx.JSON(http.StatusOK, dto.ToResponse())
+	ctx.JSON(http.StatusOK, mapper.ToExamDTO(*exam))
 }
 func (ec *examController) GetAll(ctx *gin.Context) {
+	exams, err := ec.examSvc.GetAll()
+	if err != nil {
+		httperror.WriteError(err, ctx.Writer)
+		return
+	}
+
+	result := make([]*dto.ExamDTOResponse, 0)
+	for _, ex := range exams {
+		result = append(result, mapper.ToExamDTO(*ex))
+	}
+	ctx.JSON(http.StatusOK, result)
 
 }
 func (ec *examController) Save(ctx *gin.Context) {
+	var input dto.ExamDTORequest
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
+	exam, err := mapper.ToExamDomain(&input)
+	if err != nil {
+		httperror.WriteError(err, ctx.Writer)
+		return
+	}
+
+	err = ec.examSvc.Save(exam)
+	if err != nil {
+		httperror.WriteError(err, ctx.Writer)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{})
 }
 func (ec *examController) Update(ctx *gin.Context) {
 

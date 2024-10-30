@@ -1,64 +1,36 @@
 package dto
 
-import "github.com/Marlliton/go-quizzer/domain/exam"
-
-type ExamDTO struct {
-	Entity *exam.Exam
-}
-
-type examDTOResponse struct {
+type ExamDTOResponse struct {
 	ID          string                 `json:"id"`
 	Title       string                 `json:"title"`
 	Description string                 `json:"description"`
-	Questions   []*questionDTOResponse `json:"questions"`
+	Questions   []*QuestionDTOResponse `json:"questions"`
 }
 
-type questionDTOResponse struct {
+type QuestionDTOResponse struct {
 	ID        string                     `json:"id"`
 	Statement string                     `json:"statement"`
-	Items     []*questionItemDTOResponse `json:"items"`
+	Items     []*QuestionItemDTOResponse `json:"items"`
 }
 
-type questionItemDTOResponse struct {
+type QuestionItemDTOResponse struct {
 	ID    string `json:"id"`
 	Text  string `json:"text"`
 	Right bool   `json:"right"`
 }
 
-func (ed *ExamDTO) ToResponse() *examDTOResponse {
-	return &examDTOResponse{
-		ID:          ed.Entity.GetID(),
-		Title:       ed.Entity.GetTitle(),
-		Description: ed.Entity.GetDescription(),
-		Questions:   toQuestionDTOResponse(ed.Entity.GetQuestions()),
-	}
+type ExamDTORequest struct {
+	Title       string               `json:"title" binding:"required"`
+	Description string               `json:"description"`
+	Questions   []QuestionDTORequest `json:"questions" binding:"dive"` // dive faz a validação recursiva no objetos filhos
 }
 
-func toQuestionDTOResponse(questions []*exam.Question) []*questionDTOResponse {
-	result := make([]*questionDTOResponse, len(questions))
-
-	for i, q := range questions {
-		items := toQuestionItemDTOResponse(q.GetItems())
-		result[i] = &questionDTOResponse{
-			ID:        q.GetID(),
-			Statement: q.GetStatement(),
-			Items:     items,
-		}
-	}
-
-	return result
+type QuestionDTORequest struct {
+	Statement string                   `json:"statement" binding:"required"`
+	Items     []QuestionItemDTORequest `json:"items" binding:"dive"`
 }
 
-func toQuestionItemDTOResponse(items []*exam.QuestionItem) []*questionItemDTOResponse {
-	result := make([]*questionItemDTOResponse, len(items))
-
-	for i, it := range items {
-		result[i] = &questionItemDTOResponse{
-			ID:    it.GetID(),
-			Text:  it.GetText(),
-			Right: it.GetIsRight(),
-		}
-	}
-
-	return result
+type QuestionItemDTORequest struct {
+	Text  string `json:"text" binding:"required"`
+	Right bool   `json:"right"`
 }
