@@ -24,6 +24,7 @@ type Product struct {
 
 func NewProduct(name string, price int) (*Product, error) {
 	product := Product{
+		ID:        entity.NewID(),
 		Name:      name,
 		Price:     price,
 		CreatedAt: time.Now(),
