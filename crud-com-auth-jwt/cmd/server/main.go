@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	_ = configs.LoadConfig(".")
+	config := configs.LoadConfig(".")
 
 	db, err := gorm.Open(sqlite.Open("dev.db"), &gorm.Config{})
 	if err != nil {
@@ -25,7 +25,7 @@ func main() {
 	productHnadler := handlers.NewProductHandler(productDB)
 
 	userDB := database.NewUserDB(db)
-	userHandler := handlers.NewUserHandler(userDB)
+	userHandler := handlers.NewUserHandler(userDB, *config.TokenJWTAuth, config.JWTExpiresIn)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -36,6 +36,7 @@ func main() {
 	r.Delete("/products/{id}", productHnadler.DeleteProduct)
 
 	r.Post("/users", userHandler.Create)
+	r.Post("/users/login", userHandler.Login)
 
 	http.ListenAndServe(":8000", r)
 }
