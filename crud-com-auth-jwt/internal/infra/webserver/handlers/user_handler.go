@@ -13,20 +13,19 @@ import (
 )
 
 type UserHnadler struct {
-	UserDB       database.UserInterface
-	JWT          jwtauth.JWTAuth
-	JWTExpiresIn int
+	UserDB database.UserInterface
 }
 
-func NewUserHandler(userDB database.UserInterface, jwt jwtauth.JWTAuth, jwtExpiresIn int) *UserHnadler {
+func NewUserHandler(userDB database.UserInterface) *UserHnadler {
 	return &UserHnadler{
-		UserDB:       userDB,
-		JWT:          jwt,
-		JWTExpiresIn: jwtExpiresIn,
+		UserDB: userDB,
 	}
 }
 
 func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
+	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
+	jwtExpiresIn := r.Context().Value("jwtExpiresIn").(int)
+
 	var userInputJWT dto.UserLoginInput
 	if err := json.NewDecoder(r.Body).Decode(&userInputJWT); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -43,9 +42,9 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, _ := h.JWT.Encode(map[string]interface{}{
-		"sub":        u.ID.String(),
-		"expires_in": time.Now().Add(time.Second * time.Duration(h.JWTExpiresIn)).Unix(),
+	_, tokenString, _ := jwt.Encode(map[string]interface{}{
+		"sub": u.ID.String(),
+		"exp": time.Now().Add(time.Second * time.Duration(jwtExpiresIn)).Unix(),
 	})
 
 	accessToken :=

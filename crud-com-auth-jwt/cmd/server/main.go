@@ -9,6 +9,7 @@ import (
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/webserver/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -25,15 +26,26 @@ func main() {
 	productHnadler := handlers.NewProductHandler(productDB)
 
 	userDB := database.NewUserDB(db)
-	userHandler := handlers.NewUserHandler(userDB, *config.TokenJWTAuth, config.JWTExpiresIn)
+	userHandler := handlers.NewUserHandler(userDB)
 
 	r := chi.NewRouter()
+
 	r.Use(middleware.Logger)
-	r.Post("/products", productHnadler.CreateProduct)
-	r.Get("/products/{id}", productHnadler.GetProduct)
-	r.Get("/products", productHnadler.GetProducts)
-	r.Put("/products/{id}", productHnadler.UpdateProduct)
-	r.Delete("/products/{id}", productHnadler.DeleteProduct)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.WithValue("jwt", config.TokenJWTAuth))
+	r.Use(middleware.WithValue("jwtExpiresIn", config.JWTExpiresIn))
+
+	r.Route("/products", func(r chi.Router) {
+		// NOTE: Protegendo rotas de produto
+		r.Use(jwtauth.Verifier(config.TokenJWTAuth))
+		r.Use(jwtauth.Authenticator)
+
+		r.Post("/", productHnadler.CreateProduct)
+		r.Get("/{id}", productHnadler.GetProduct)
+		r.Get("/", productHnadler.GetProducts)
+		r.Put("/{id}", productHnadler.UpdateProduct)
+		r.Delete("/{id}", productHnadler.DeleteProduct)
+	})
 
 	r.Post("/users", userHandler.Create)
 	r.Post("/users/login", userHandler.Login)
