@@ -12,6 +12,12 @@ import (
 	"github.com/go-chi/jwtauth"
 )
 
+type ErrorResponse struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message,omitempty"`
+	Errors  interface{} `json:"errors,omitempty"`
+}
+
 type UserHnadler struct {
 	UserDB database.UserInterface
 }
@@ -58,20 +64,35 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(accessToken)
 }
 
+// Create user godoc
+// @Summary Create user
+// @Description Create user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateUserInput true "user request"
+// @Success 201
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users [post]
 func (h *UserHnadler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var userInput dto.CreateUserInput
 	if err := json.NewDecoder(r.Body).Decode(&userInput); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Success: false,
+			Message: "json decode error",
+		})
 		return
 	}
 
 	u, errs := entity.NewUser(userInput.Name, userInput.Email, userInput.Password)
 	if errs != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"sucess": false,
-			"errors": errs,
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Success: false,
+			Errors:  errs,
 		})
 		return
 	}

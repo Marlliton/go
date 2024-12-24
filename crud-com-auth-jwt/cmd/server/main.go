@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Marlliton/go/crud-com-auth-jwt/configs"
+	_ "github.com/Marlliton/go/crud-com-auth-jwt/docs"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/entity"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/database"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/webserver/handlers"
@@ -11,9 +12,23 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+// @title Crud com autenticação
+// @version 1.0.0
+// @description Crud de produtos com autenticação
+
+// @contact.name Marlliton Souza
+// @contact.email marlliton.souza1@gmail.com
+
+// @host localhost:8000
+// @basePath /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 
 func main() {
 	config := configs.LoadConfig(".")
@@ -49,8 +64,12 @@ func main() {
 		r.Delete("/{id}", productHnadler.DeleteProduct)
 	})
 
-	r.Post("/users", userHandler.Create)
-	r.Post("/users/login", userHandler.Login)
+	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8000/docs/doc.json")))
+
+	r.Route("/users", func(r chi.Router) {
+		r.Post("/", userHandler.Create)
+		r.Post("/login", userHandler.Login)
+	})
 
 	http.ListenAndServe(":8000", r)
 }
