@@ -1,5 +1,9 @@
 github.com/Marlliton/validator v1.0.0 h1:aBWHRAEhvL93UgNWalKUuJvNRbzt1aeGMn8sW2SfojM=
 github.com/Marlliton/validator v1.0.0/go.mod h1:KeVQXR8HhKdPmnkV83Z7AAMdLPe3B6+2X2rHMK/dvI8=
+github.com/Marlliton/validator v1.0.2 h1:oSyvjG6oiKshemZHc2l2O0PUihjja0seeqC+HhQuw64=
+github.com/Marlliton/validator v1.0.2/go.mod h1:KeVQXR8HhKdPmnkV83Z7AAMdLPe3B6+2X2rHMK/dvI8=
+github.com/Marlliton/validator v1.0.3 h1:Qoq+1c2OGXFvTl7++CbZZY/NCWZg8TBGHN9WNgH14mw=
+github.com/Marlliton/validator v1.0.3/go.mod h1:KeVQXR8HhKdPmnkV83Z7AAMdLPe3B6+2X2rHMK/dvI8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
