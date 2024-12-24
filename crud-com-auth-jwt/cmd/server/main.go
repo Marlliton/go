@@ -7,6 +7,7 @@ import (
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/entity"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/database"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/webserver/handlers"
+	internal_middleware "github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/webserver/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth"
@@ -34,6 +35,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.WithValue("jwt", config.TokenJWTAuth))
 	r.Use(middleware.WithValue("jwtExpiresIn", config.JWTExpiresIn))
+	r.Use(internal_middleware.JSONContentType)
 
 	r.Route("/products", func(r chi.Router) {
 		// NOTE: Protegendo rotas de produto

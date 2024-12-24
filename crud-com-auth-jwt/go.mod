@@ -3,11 +3,12 @@ module github.com/Marlliton/go/crud-com-auth-jwt
 go 1.23.4
 
 require (
+	github.com/Marlliton/validator v1.0.0
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/google/uuid v1.4.0
 	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.21.0
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12

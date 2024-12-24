@@ -54,21 +54,25 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 			AccessToken: tokenString,
 		}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(accessToken)
 }
 
 func (h *UserHnadler) Create(w http.ResponseWriter, r *http.Request) {
+
 	var userInput dto.CreateUserInput
 	if err := json.NewDecoder(r.Body).Decode(&userInput); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	u, err := entity.NewUser(userInput.Name, userInput.Email, userInput.Password)
-	if err != nil {
+	u, errs := entity.NewUser(userInput.Name, userInput.Email, userInput.Password)
+	if errs != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"sucess": false,
+			"errors": errs,
+		})
 		return
 	}
 
@@ -94,7 +98,6 @@ func (h *UserHnadler) FindByEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 
 	json.NewEncoder(w).Encode(u)
 }
