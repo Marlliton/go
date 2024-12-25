@@ -28,6 +28,17 @@ func NewUserHandler(userDB database.UserInterface) *UserHnadler {
 	}
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Login user
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body dto.UserLoginInput true "user credentials"
+// @Success 200 {object} dto.UserLoginOutput
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /users/login [post]
 func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
 	jwtExpiresIn := r.Context().Value("jwtExpiresIn").(int)
@@ -35,16 +46,28 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 	var userInputJWT dto.UserLoginInput
 	if err := json.NewDecoder(r.Body).Decode(&userInputJWT); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Success: false,
+			Errors:  err,
+		})
 		return
 	}
 	u, err := h.UserDB.FindByEmail(userInputJWT.Email)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Success: false,
+			Errors:  err,
+		})
 		return
 	}
 
 	if !u.ValidatePassword(userInputJWT.Password) {
 		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Success: false,
+			Message: "invalid user or password",
+		})
 		return
 	}
 
@@ -53,12 +76,7 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 		"exp": time.Now().Add(time.Second * time.Duration(jwtExpiresIn)).Unix(),
 	})
 
-	accessToken :=
-		struct {
-			AccessToken string `json:"access_token"`
-		}{
-			AccessToken: tokenString,
-		}
+	accessToken := dto.UserLoginOutput{AccessToken: tokenString}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(accessToken)
