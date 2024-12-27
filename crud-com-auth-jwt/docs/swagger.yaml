@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  dto.CreateProductInput:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.CreateUserInput:
     properties:
       email:
@@ -21,7 +28,7 @@ definitions:
       access_token:
         type: string
     type: object
-  handlers.ErrorResponse:
+  error_response.ErrorResponse:
     properties:
       errors: {}
       message:
@@ -38,6 +45,40 @@ info:
   title: Crud com autenticação
   version: 1.0.0
 paths:
+  /products:
+    post:
+      consumes:
+      - application/json
+      description: Create products
+      parameters:
+      - description: products request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateProductInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error_response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create products
+      tags:
+      - products
   /users:
     post:
       consumes:
@@ -58,11 +99,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/error_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/error_response.ErrorResponse'
       summary: Create user
       tags:
       - users
@@ -88,11 +129,11 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/error_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/error_response.ErrorResponse'
       summary: Login user
       tags:
       - users

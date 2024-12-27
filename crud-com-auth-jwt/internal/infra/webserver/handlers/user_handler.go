@@ -8,15 +8,10 @@ import (
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/dto"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/entity"
 	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/database"
+	"github.com/Marlliton/go/crud-com-auth-jwt/internal/infra/webserver/error_response"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth"
 )
-
-type ErrorResponse struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message,omitempty"`
-	Errors  interface{} `json:"errors,omitempty"`
-}
 
 type UserHnadler struct {
 	UserDB database.UserInterface
@@ -36,8 +31,8 @@ func NewUserHandler(userDB database.UserInterface) *UserHnadler {
 // @Produce json
 // @Param request body dto.UserLoginInput true "user credentials"
 // @Success 200 {object} dto.UserLoginOutput
-// @Failure 404 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 404 {object} error_response.ErrorResponse
+// @Failure 500 {object} error_response.ErrorResponse
 // @Router /users/login [post]
 func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 	jwt := r.Context().Value("jwt").(*jwtauth.JWTAuth)
@@ -46,7 +41,7 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 	var userInputJWT dto.UserLoginInput
 	if err := json.NewDecoder(r.Body).Decode(&userInputJWT); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ErrorResponse{
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
 			Success: false,
 			Errors:  err,
 		})
@@ -55,7 +50,7 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 	u, err := h.UserDB.FindByEmail(userInputJWT.Email)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(ErrorResponse{
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
 			Success: false,
 			Errors:  err,
 		})
@@ -64,7 +59,7 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 
 	if !u.ValidatePassword(userInputJWT.Password) {
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(ErrorResponse{
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
 			Success: false,
 			Message: "invalid user or password",
 		})
@@ -90,15 +85,15 @@ func (h *UserHnadler) Login(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param request body dto.CreateUserInput true "user request"
 // @Success 201
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} error_response.ErrorResponse
+// @Failure 500 {object} error_response.ErrorResponse
 // @Router /users [post]
 func (h *UserHnadler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var userInput dto.CreateUserInput
 	if err := json.NewDecoder(r.Body).Decode(&userInput); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ErrorResponse{
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
 			Success: false,
 			Message: "json decode error",
 		})
@@ -108,7 +103,7 @@ func (h *UserHnadler) Create(w http.ResponseWriter, r *http.Request) {
 	u, errs := entity.NewUser(userInput.Name, userInput.Email, userInput.Password)
 	if errs != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ErrorResponse{
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
 			Success: false,
 			Errors:  errs,
 		})
@@ -117,6 +112,10 @@ func (h *UserHnadler) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.UserDB.Create(u); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
+			Success: false,
+			Errors:  err,
+		})
 		return
 	}
 
@@ -127,12 +126,20 @@ func (h *UserHnadler) FindByEmail(w http.ResponseWriter, r *http.Request) {
 	email := chi.URLParam(r, "email")
 	if email == "" {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
+			Success: false,
+			Message: "Email is required",
+		})
 		return
 	}
 
 	u, err := h.UserDB.FindByEmail(email)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(error_response.ErrorResponse{
+			Success: false,
+			Errors:  err,
+		})
 		return
 	}
 
