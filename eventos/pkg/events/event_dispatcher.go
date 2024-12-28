@@ -1,6 +1,9 @@
 package events
 
-import "errors"
+import (
+	"errors"
+	"sync"
+)
 
 var ErrEventHandlerAlreadyExists = errors.New("event handler already exists")
 
@@ -16,9 +19,13 @@ func NewEventDispatcher() *EventDispatcher {
 
 func (ed *EventDispatcher) Dispatch(event EventInterface) error {
 	if handlers, ok := ed.handlers[event.GetName()]; ok {
+		wg := &sync.WaitGroup{}
 		for _, handler := range handlers {
-			handler.Handle(event)
+			wg.Add(1)
+			go handler.Handle(event, wg)
 		}
+
+		wg.Wait()
 	}
 	return nil
 }

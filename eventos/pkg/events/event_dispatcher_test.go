@@ -2,6 +2,7 @@
 package events
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -27,7 +28,9 @@ func (e *TestEvent) GetPayload() interface{} {
 
 type TestEventHandler struct{ ID int }
 
-func (h *TestEventHandler) Handle(event EventInterface) {}
+func (h *TestEventHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
+	wg.Done()
+}
 
 // NOTE: Suite de testes
 type EventDispatcherTestSuite struct {
@@ -147,8 +150,9 @@ type MockHandler struct {
 	mock.Mock
 }
 
-func (mh *MockHandler) Handle(event EventInterface) {
+func (mh *MockHandler) Handle(event EventInterface, wg *sync.WaitGroup) {
 	mh.Called(event)
+	wg.Done()
 }
 
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
