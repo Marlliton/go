@@ -37,6 +37,19 @@ func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterf
 	return nil
 }
 
+func (ed *EventDispatcher) Remove(eventName string, handler EventHandlerInterface) error {
+	if handlers, ok := ed.handlers[eventName]; ok {
+		for i, h := range handlers {
+			if h == handler {
+				ed.handlers[eventName] = append(ed.handlers[eventName][:i], ed.handlers[eventName][i+1:]...)
+				return nil
+			}
+		}
+	}
+
+	return nil
+}
+
 func (ed *EventDispatcher) Clear() {
 	ed.handlers = make(map[string][]EventHandlerInterface)
 }
