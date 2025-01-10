@@ -47,6 +47,7 @@ type (
 		ID          string
 		Name        string
 		Description sql.NullString
+		Price       float64
 	}
 
 	CategoryParams struct {
@@ -77,6 +78,7 @@ func (c *CourseDB) CreateCouseAndCategory(
 			Name:        argsCourse.Name,
 			Description: argsCourse.Description,
 			CategoryID:  argsCategory.ID,
+			Price:       argsCourse.Price,
 		})
 		if err != nil {
 			return err
@@ -106,6 +108,7 @@ func main() {
 		ID:          uuid.New().String(),
 		Name:        "Go",
 		Description: sql.NullString{String: "Go Course", Valid: true},
+		Price:       200.00,
 	}
 	categoryArgs := CategoryParams{
 		ID:          uuid.New().String(),

@@ -21,5 +21,5 @@ DELETE FROM categories
 
 -- name: CreateCourse :exec
 INSERT INTO courses (
-  id, name, description, category_id
-  ) VALUES (?, ?, ?, ?);
+  id, name, description, category_id, price
+  ) VALUES (?, ?, ?, ?, ?);
