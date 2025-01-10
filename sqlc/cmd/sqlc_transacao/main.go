@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/Marlliton/go/sqlc/internal/db"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 )
 
 type CourseDB struct {
@@ -74,6 +76,7 @@ func (c *CourseDB) CreateCouseAndCategory(
 			ID:          argsCourse.ID,
 			Name:        argsCourse.Name,
 			Description: argsCourse.Description,
+			CategoryID:  argsCategory.ID,
 		})
 		if err != nil {
 			return err
@@ -97,7 +100,25 @@ func main() {
 	}
 	defer conn.Close()
 
-	queries := db.New(conn)
+	// queries := db.New(conn)
+
+	couserArgs := CourseParams{
+		ID:          uuid.New().String(),
+		Name:        "Go",
+		Description: sql.NullString{String: "Go Course", Valid: true},
+	}
+	categoryArgs := CategoryParams{
+		ID:          uuid.New().String(),
+		Name:        "Backend",
+		Description: sql.NullString{String: "Backend Course", Valid: true},
+	}
 
 	// NOTE: Realizando transação para salvar tudo ou nada.
+	courseDB := NewCourseDB(conn)
+
+	err = courseDB.CreateCouseAndCategory(ctx, categoryArgs, couserArgs)
+	if err != nil {
+		panic(err)
+	}
+	//
 }
