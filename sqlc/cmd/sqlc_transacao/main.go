@@ -40,6 +40,55 @@ func (c *CourseDB) callTrasacao(ctx context.Context, fn func(*db.Queries) error)
 	return transacao.Commit()
 }
 
+type (
+	CourseParams struct {
+		ID          string
+		Name        string
+		Description sql.NullString
+	}
+
+	CategoryParams struct {
+		ID          string
+		Name        string
+		Description sql.NullString
+	}
+)
+
+func (c *CourseDB) CreateCouseAndCategory(
+	ctx context.Context, argsCategory CategoryParams, argsCourse CourseParams,
+) error {
+
+	err := c.callTrasacao(ctx, func(q *db.Queries) error {
+
+		var err error
+		err = q.CreateCategory(ctx, db.CreateCategoryParams{
+			ID:          argsCategory.ID,
+			Name:        argsCategory.Name,
+			Description: argsCategory.Description,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = q.CreateCourse(ctx, db.CreateCourseParams{
+			ID:          argsCourse.ID,
+			Name:        argsCourse.Name,
+			Description: argsCourse.Description,
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	ctx := context.Background()
 	conn, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/sqlc")
