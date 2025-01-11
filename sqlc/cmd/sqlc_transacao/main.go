@@ -7,7 +7,6 @@ import (
 
 	"github.com/Marlliton/go/sqlc/internal/db"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/google/uuid"
 )
 
 type CourseDB struct {
@@ -102,26 +101,39 @@ func main() {
 	}
 	defer conn.Close()
 
-	// queries := db.New(conn)
+	queries := db.New(conn)
 
-	couserArgs := CourseParams{
-		ID:          uuid.New().String(),
-		Name:        "Go",
-		Description: sql.NullString{String: "Go Course", Valid: true},
-		Price:       200.00,
-	}
-	categoryArgs := CategoryParams{
-		ID:          uuid.New().String(),
-		Name:        "Backend",
-		Description: sql.NullString{String: "Backend Course", Valid: true},
-	}
+	// NOTE: Execução da transação
+	/*
+		couserArgs := CourseParams{
+			ID:          uuid.New().String(),
+			Name:        "Go",
+			Description: sql.NullString{String: "Go Course", Valid: true},
+			Price:       200.00,
+		}
+		categoryArgs := CategoryParams{
+			ID:          uuid.New().String(),
+			Name:        "Backend",
+			Description: sql.NullString{String: "Backend Course", Valid: true},
+		}
 
-	// NOTE: Realizando transação para salvar tudo ou nada.
-	courseDB := NewCourseDB(conn)
+		// NOTE: Realizando transação para salvar tudo ou nada.
+		//
+		courseDB := NewCourseDB(conn)
 
-	err = courseDB.CreateCouseAndCategory(ctx, categoryArgs, couserArgs)
+		err = courseDB.CreateCouseAndCategory(ctx, categoryArgs, couserArgs)
+		if err != nil {
+			panic(err)
+		}
+	*/
+
+	// NOTE: Consultando
+
+	courses, err := queries.ListCourses(ctx)
 	if err != nil {
 		panic(err)
 	}
-	//
+	for _, c := range courses {
+		fmt.Printf("Category: %s, Course: %s, Price: %f", c.CategoryName, c.Name, c.Price)
+	}
 }
